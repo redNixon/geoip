@@ -42,34 +42,35 @@ def get_ip_version(ip):
     return(ipaddress.ip_address(ip).version)
 
 def get_profile(ip):
-    if is_public(ip):
-        return({
-            "ip" : ip,
-            "city" : get_city(ip),
-            "country" : get_country(ip),
-            "continent" : get_continent(ip),
-            "location" : get_location(ip),
-            "org" : "%s %s" % (get_asn_num(ip), get_asn_name(ip))
-        })
-    elif is_private(ip):
-        return ({
-            "ip" : ip,
-            "bogon" : True
-        })
-    elif is_multicast(ip):
-        return ({
-            "ip" : ip,
-            "bogon" : True
-        })
-
-    elif is_reserved(ip):
-        return ({
-            "ip" : ip,
-            "bogon" : True
-        })
-
-    elif is_unspecified(ip):
-        return ({
-            "ip" : ip,
-            "bogon" : True
-        })
+    try:
+        if is_public(ip):
+            return({
+                "ip" : ip,
+                "city" : get_city(ip),
+                "country" : get_country(ip),
+                "continent" : get_continent(ip),
+                "location" : get_location(ip),
+                "org" : "%s %s" % (get_asn_num(ip), get_asn_name(ip))
+            })
+        elif is_private(ip):
+            return ({
+                "ip" : ip,
+                "bogon" : True
+            })
+        elif is_multicast(ip):
+            return ({
+                "ip" : ip,
+                "bogon" : True
+            })
+        elif is_reserved(ip):
+            return ({
+                "ip" : ip,
+                "bogon" : True
+            })
+        elif is_unspecified(ip):
+            return ({
+                "ip" : ip,
+                "bogon" : True
+            })
+    except Exception as e:
+        raise
