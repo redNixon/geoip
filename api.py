@@ -1,9 +1,20 @@
 from sanic import Sanic
 from sanic.response import json
 from core import utils
+import aiocache
+from aiocache.serializers import JsonSerializer
+from aiocache import caches, cached, RedisCache
 
 app = Sanic()
 
+
+caches.set_config({
+    'default': {
+        'cache': "aiocache.RedisCache",
+    }
+})
+
+@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/")
 async def index(request):
     remote_addr, remote_port = request.ip
@@ -12,6 +23,7 @@ async def index(request):
     except Exception:
         return(json({ "message" : "Error checking your ip."}))
 
+@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/<ip>")
 async def geo_ip(request, ip):
     try:
@@ -19,6 +31,7 @@ async def geo_ip(request, ip):
     except Exception:
         return(json({ "message" : "Error checking your ip."}))
 
+@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/bulk" , methods=["POST"])
 async def bulk_geo_ip(request):
     try:
@@ -34,6 +47,7 @@ async def bulk_geo_ip(request):
     except Exception:
         return(json({ "message" : "error checking your list."}))
 
+@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/<ip>/<field>")
 async def return_ip_profile(request, ip , field):
     try:
