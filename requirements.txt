@@ -1,3 +1,5 @@
+redis
+aiocache
 ipaddress
 yaml
 python3
