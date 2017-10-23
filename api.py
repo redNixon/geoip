@@ -11,7 +11,16 @@ async def index(request):
 
 @app.route("/<ip>")
 async def geo_ip(request, ip):
-        return(json(utils.get_profile(ip)))
+    return(json(utils.get_profile(ip)))
+
+@app.route("/bulk" , methods=["POST"])
+async def bulk_geo_ip(request):
+    ip_list = request.json
+    results = []
+    for ip in ip_list:
+        results.append(utils.get_profile(ip))
+
+    return(json(results))
 
 @app.route("/<ip>/<field>")
 async def return_ip_profile(request, ip, field = None):
