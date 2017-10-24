@@ -1,37 +1,41 @@
 from sanic import Sanic
 from sanic.response import json
 from core import utils
-import aiocache
 from aiocache.serializers import JsonSerializer
-from aiocache import caches, cached, RedisCache
+from aiocache import SimpleMemoryCache
 
 app = Sanic()
 
+cache = SimpleMemoryCache(namespace="geo_api_", serializer=JsonSerializer())
 
-caches.set_config({
-    'default': {
-        'cache': "aiocache.RedisCache",
-    }
-})
-
-@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/")
 async def index(request):
     remote_addr, remote_port = request.ip
-    try:
-        return(json(utils.get_profile(remote_addr)))
-    except Exception:
-        return(json({ "message" : "Error checking your ip."}))
+    cached_geo_ip = await cache.get(remote_addr)
+    if cached_geo_ip is None:
+        try:
+            profile = utils.get_profile(remote_addr)
+            await cache.set(remote_addr, profile)
+            return(json(profile))
+        except Exception:
+            return(json({ "message" : "Error checking your ip."}))
+    else:
+        return(json(cached_geo_ip))
 
-@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/<ip>")
 async def geo_ip(request, ip):
-    try:
-        return(json(utils.get_profile(ip)))
-    except Exception:
-        return(json({ "message" : "Error checking your ip."}))
+    cached_geo_ip = await cache.get(ip)
+    if cached_geo_ip is None:
+        try:
+            profile = utils.get_profile(ip)
+            await cache.set(ip, profile)
+            return(json(profile))
+        except Exception:
+            return(json({ "message" : "Error checking your ip."}))
 
-@cached(key="my_custom_key", serializer=JsonSerializer())
+    else:
+        return(json(cached_geo_ip))
+
 @app.route("/bulk" , methods=["POST"])
 async def bulk_geo_ip(request):
     try:
@@ -39,7 +43,16 @@ async def bulk_geo_ip(request):
         if type(ip_list) is list:
             results = []
             for ip in ip_list:
-                results.append(utils.get_profile(ip))
+                cached_geo_ip = await cache.get(ip)
+                if cached_geo_ip is None:
+                    try:
+                        profile = utils.get_profile(ip)
+                        await cache.set(ip, profile)
+                        results.append(utils.get_profile(ip))
+                    except Exception:
+                        return(json({"message" :  "Error checking ip %s in your list." % (ip) }))
+                else:
+                    results.append(cached_geo_ip)
             return(json(results))
         else:
             return(json( {"message" : "Invalid list."} ))
@@ -47,11 +60,16 @@ async def bulk_geo_ip(request):
     except Exception:
         return(json({ "message" : "error checking your list."}))
 
-@cached(key="my_custom_key", serializer=JsonSerializer())
 @app.route("/<ip>/<field>")
 async def return_ip_profile(request, ip , field):
     try:
-        profile = utils.get_profile(ip)
+        cached_geo_ip = await cache.get(ip)
+        if cached_geo_ip is None:
+            profile = utils.get_profile(ip)
+            await cache.set(ip, profile)
+        else:
+            profile = cached_geo_ip
+
         if field in profile:
             return(json( profile.get( field ) ))
         else:
