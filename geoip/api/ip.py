@@ -1,3 +1,5 @@
+"""API blueprint relating to IP resources."""
+
 from aiocache.serializers import JsonSerializer
 
 from sanic import Blueprint
@@ -9,8 +11,11 @@ from geoip.extensions import ip_lookup
 
 blueprint = Blueprint('geoip_api')
 
+
 def get_profile(ip):
     """Create a dictionary detailing a variety of information about an IP."""
+    if not is_ip(ip):
+        raise InvalidUsage(f'{ip} is not a valid ip')
     if is_public(ip):
         asn_num = ip_lookup.get_asn_num(ip)
         asn = ip_lookup.get_asn_name(ip)
@@ -44,16 +49,13 @@ async def geo_ip(request, ip):
     return json(profile)
 
 
-@blueprint.route("/bulk" , methods=["POST"])
+@blueprint.route("/bulk", methods=["POST"])
 async def bulk_geo_ip(request):
     """Given a JSON list of IPs, return the profile of each IP."""
     ip_list = request.json
     if not isinstance(ip_list, list):
         raise InvalidUsage('This endpoint only supports a list.')
-    results = []
-    for ip in ip_list:
-        profile = get_profile(ip)
-        results.append(get_profile(ip))
+    results = [get_profile(ip) for ip in ip_list]
     return json(dict(results=results))
 
 

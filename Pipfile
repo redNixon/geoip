@@ -8,10 +8,15 @@ sanic = "*"
 aiocache = "*"
 ipaddress = "*"
 pytest = "*"
+"autopep8" = "*"
 
 [dev-packages]
 pytest = "*"
 ipython = "*"
+"autopep8" = "*"
+pydocstyle = "*"
+pycodestyle = "*"
+aiohttp = "*"
 
 [requires]
 python_version = "3.6"

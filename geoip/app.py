@@ -10,6 +10,7 @@ from geoip.config import DevConfig
 from geoip.api.ip import blueprint
 from geoip.extensions import ip_lookup
 
+
 def create_app(config=DevConfig):
     """Application factory for geoIP application.
 
@@ -22,16 +23,17 @@ def create_app(config=DevConfig):
     register_error_handlers(application)
     return application
 
+
 def extensions_setup(app):
-    """Setup the extensions of the application."""
+    """Initialize the extensions of the application."""
     ip_lookup.init_app(app)
+
 
 def register_error_handlers(app):
     """Register some simple error handlers on the application."""
-
     @app.exception(NotFound)
     def not_found_handler(request, exception):
-        """Handler for 404 exceptions."""
+        """Handle 404 exceptions."""
         response = dict(
             error='Not Found',
             url=request.url,
@@ -40,7 +42,7 @@ def register_error_handlers(app):
 
     @app.exception(InvalidUsage)
     def invalid_usage_handler(request, exception):
-        """Handler for InvalidUsage exceptions.
+        """Handle InvalidUsage exceptions.
 
         InvalidUsage is used in this application as to point out bad requests
         """

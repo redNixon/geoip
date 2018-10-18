@@ -1,3 +1,5 @@
+"""Entrypoint for the GeoIP API."""
+
 from geoip.app import create_app
 
 if __name__ == "__main__":
